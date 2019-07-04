@@ -1,0 +1,43 @@
+pragma solidity ^0.4.11;
+
+//public var can be accessed outside the contract
+
+contract bitcoins {
+    uint public max_bitcoin = 1000000;
+    uint public usd_to_bitcoin = 1000;
+    uint public total_bitcoin_bought = 0;
+
+    //mapping investor address to its equity in bitcoin and usd
+    mapping(address => uint) equity_bitcoin;
+    mapping(address => uint) equity_usd;
+
+    //check if investor can buy bitcoin
+    modifier can_buy_bitcoin(uint usd_invested){
+        require (usd_invested * usd_to_bitcoin + total_bitcoin_bought <= max_bitcoin);
+        _;
+    }
+
+    function equity_in_bitcoin(address investor) external constant returns (uint){
+        return equity_bitcoin[investor];
+    }
+    function equity_in_usd(address investor) external constant returns (uint){
+        return equity_usd[investor];
+    }
+
+    //buy bitcoin
+    function buy_bitcoin(address investor, uint usd_invested) external
+    can_buy_bitcoin(usd_invested) {
+        uint bitcoin_bought = usd_invested * usd_to_bitcoin;
+        equity_bitcoin[investor] += bitcoin_bought;
+        equity_usd[investor] = equity_bitcoin[investor] / 1000;
+        total_bitcoin_bought += bitcoin_bought;
+    }
+
+    //sell bitcoin
+    function sell_bitcoin(address investor, uint bitcoin_sold) external {
+        equity_bitcoin[investor] -= bitcoin_sold;
+        equity_usd[investor] = equity_bitcoin[investor] / 1000;
+        total_bitcoin_bought -= bitcoin_sold;
+    }
+}
+
